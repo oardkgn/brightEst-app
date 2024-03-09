@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body{
+    background-color: #EEEEEE;
+    font-family: "Dosis", sans-serif;
+    font-optical-sizing: auto;      
+}
