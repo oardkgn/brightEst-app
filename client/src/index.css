@@ -5,5 +5,7 @@
 body{
     background-color: #EEEEEE;
     font-family: "Dosis", sans-serif;
-    font-optical-sizing: auto;      
+    font-optical-sizing: auto;
+    width: 100vw;
+    overflow-x: hidden;    
 }

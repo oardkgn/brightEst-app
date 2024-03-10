@@ -1,19 +1,26 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { json, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
+import GAuth from "../components/GAuth";
 
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username:"",
-    email:"",
-    password:""
+    username: "",
+    email: "",
+    password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { loading, error } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true)
+    dispatch(signInStart());
     try {
       const res = await fetch("api/auth/signUp", {
         method: "POST",
@@ -24,18 +31,14 @@ function Register() {
       });
       const data = await res.json();
       if (data.success == false) {
-        setError(data.message);
-        setLoading(false)
-      }else{
-        setLoading(false)
-        setError(null)
-        navigate('/login')
+        dispatch(signInFailure());
+      } else {
+        dispatch(signInSuccess());
+        navigate("/home");
       }
     } catch (error) {
-      setLoading(false)
-      setError(error.message)
+      dispatch(signInFailure());
     }
-    
   };
   const handleChange = (e) => {
     setFormData({
@@ -84,7 +87,6 @@ function Register() {
             type="password"
             name=""
             id="passwordC"
-
           />
           <label className=" font-semibold" htmlFor="email">
             Email
@@ -97,7 +99,10 @@ function Register() {
             onChange={handleChange}
           />
 
-          <button disabled={loading} className="hover:scale-105 transition-all mb-4 hover:text-primaryColor bg-primaryDark text-primaryBright text-center w-full p-4 rounded-xl flex items-center justify-center">
+          <button
+            disabled={loading}
+            className="hover:scale-105 transition-all mb-4 hover:text-primaryColor bg-primaryDark text-primaryBright text-center w-full p-4 rounded-xl flex items-center justify-center"
+          >
             <span>{loading ? "Signing Up..." : "Sign Up"}</span>
           </button>
           {error && <p className=" text-red-500 mt-4">{error}</p>}
@@ -107,10 +112,7 @@ function Register() {
           <span>Or</span>
           <div className=" w-full bg-primaryDark h-0.5 rounded-xl"></div>
         </div>
-        <button className="hover:scale-105 transition-all hover:text-primaryColor bg-primaryDark text-primaryBright text-center w-full p-4 rounded-xl flex items-center justify-center gap-4">
-          <FcGoogle size={24} />
-          <span>Sign Up with Google</span>
-        </button>
+        <GAuth />
       </div>
       <img
         src="public/villa.png"
