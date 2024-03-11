@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { MdEdit } from "react-icons/md";
 import { useRef, useState, useEffect } from "react";
 import { IoAddCircle } from "react-icons/io5";
@@ -10,15 +10,23 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+import {
+  updateFailure,
+  updateStart,
+  updateSuccess,
+} from "../redux/user/userSlice";
 
 function Profile() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, error, loading } = useSelector((state) => state.user);
   const fileRef = useRef(null);
   const [file, setFile] = useState(undefined);
   const [fileLoading, setFileLoading] = useState(false);
   const [filePer, setFilePer] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(null);
+  const [userUpdateSuccess, setUserUpdateSuccess] = useState(false);
   const [formData, setFormData] = useState({});
+
+  const dispatch = useDispatch();
 
   const handleFileChange = (file) => {
     setFileLoading(true);
@@ -46,6 +54,36 @@ function Profile() {
     );
   };
 
+  const handleChange = (e) => {
+    const modifiedData = { ...formData, [e.target.id]: e.target.value };
+    setFormData(modifiedData);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(updateStart());
+      const res = await fetch(`api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(updateFailure(data.message));
+        return;
+      }
+      dispatch(updateSuccess(data));
+      setUserUpdateSuccess(true);
+    } catch (error) {
+      dispatch(updateFailure(error.message));
+    }
+  };
+
+  console.log(formData);
+
   useEffect(() => {
     if (filePer == 100) {
       setFileLoading(false);
@@ -60,9 +98,21 @@ function Profile() {
 
   return (
     <div className=" max-w-[1600px] relative flex gap-8 mx-auto p-2 sm:p-12">
-      <img className=" absolute w-96 -left-10 -bottom-10 -rotate-45 -z-10" src="avatar1.png" alt="" />
-      <img className=" absolute w-96 left-40 -top-10 rotate-45 -z-10" src="avatar2.png" alt="" />
-      <img className=" absolute w-[600px] -right-10 top-44 -z-10" src="estate1.png" alt="" />
+      <img
+        className=" absolute w-96 -left-10 -bottom-10 -rotate-45 -z-10"
+        src="avatar1.png"
+        alt=""
+      />
+      <img
+        className=" absolute w-96 left-40 -top-10 rotate-45 -z-10"
+        src="avatar2.png"
+        alt=""
+      />
+      <img
+        className=" absolute w-[600px] -right-10 top-44 -z-10"
+        src="estate1.png"
+        alt=""
+      />
       <div className=" bg-secondaryBright rounded-md p-6 bg-opacity-85 sm:w-[460px] w-full">
         <div className=" relative w-fit mx-auto">
           <img
@@ -95,46 +145,94 @@ function Profile() {
         <form className=" flex flex-col gap-6 p-8" action="">
           <div className=" relative">
             <label htmlFor="username">Username</label>
-            <button className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, username: currentUser.username });
+              }}
+              className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md"
+            >
               <MdEdit className=" text-primaryDark" />
             </button>
             <input
               className=" block w-full p-2 rounded-md outline-none"
               type="text"
               id="username"
-              disabled={true}
-              value={currentUser.username}
+              disabled={!Object.keys(formData).includes("username")}
+              defaultValue={currentUser.username}
+              onChange={handleChange}
             />
           </div>
           <div className="relative">
             <label htmlFor="email">Email</label>
-            <button className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, email: currentUser.email });
+              }}
+              className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md"
+            >
               <MdEdit className=" text-primaryDark" />
             </button>
             <input
               className=" block w-full p-2 rounded-md outline-none"
               type="email"
               id="email"
-              disabled={true}
-              value={currentUser.email}
+              disabled={!Object.keys(formData).includes("email")}
+              defaultValue={currentUser.email}
+              onChange={handleChange}
             />
           </div>
           <div className=" relative">
             <label htmlFor="password">Password</label>
-            <button className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, password: currentUser.password });
+              }}
+              className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md"
+            >
               <MdEdit className=" text-primaryDark" />
             </button>
             <input
               className=" block w-full p-2 rounded-md outline-none"
               type="password"
               id="password"
-              disabled={true}
-              value={1111111111}
+              disabled={!Object.keys(formData).includes("password")}
+              defaultValue={1111111111}
+              onChange={handleChange}
             />
           </div>
-          <button className=" transition-all hover:opacity-70 w-full p-2 rounded-md bg-primaryDark text-primaryBright">
-            Update
-          </button>
+          {loading ? (
+            <button
+              disabled={true}
+              className={
+                "transition-all w-full p-2 rounded-md bg-primaryDark bg-opacity-75 text-primaryBright"
+              }
+            >
+              <img
+                className=" w-6 block mx-auto"
+                src="loading-gif.gif"
+                alt=""
+              />
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={Object.keys(formData).length == 0}
+              className={
+                Object.keys(formData).length == 0
+                  ? "transition-all w-full p-2 rounded-md bg-primaryDark bg-opacity-75 text-primaryBright"
+                  : "transition-all hover:opacity-70 w-full p-2 rounded-md bg-primaryDark text-primaryBright"
+              }
+            >
+              Update
+            </button>
+          )}
+
+          {error && <p className=" text-red-500 text-center">{error}</p>}
+          { userUpdateSuccess && <p className=" text-green-500 text-center">Profile updated successfully!</p>}
+
           <div className=" flex gap-2">
             <button
               className=" transition-all hover:opacity-70 bg-red-400 w-full p-2 rounded-md  text-primaryBright"
