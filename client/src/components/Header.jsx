@@ -25,7 +25,7 @@ function Header() {
             <Link className=" p-2 text-xl hover:scale-110 hidden md:block none transition-all hover:text-primaryColor text-primaryDark" to="/home">Home</Link>
             <Link className=" p-2 text-xl hover:scale-110 hidden md:block none transition-all hover:text-primaryColor text-primaryDark" to="/about">About</Link>
             {currentUser ? (
-              <Link to="/profile"><img className='rounded-full w-11 min-w-7 object-cover' src={currentUser.avatar} alt='profile'/></Link>
+              <Link to="/profile"><img className='rounded-full w-11 h-11 min-w-7 object-cover' src={currentUser.avatar} alt='profile'/></Link>
             ) : (
               <Link className=" p-2 text-sm md:text-xl hover:scale-110 transition-all hover:text-primaryColor text-primaryBright px-6 bg-secondaryDark rounded-md" to="/login">Login</Link>
             )}

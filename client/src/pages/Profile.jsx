@@ -11,6 +11,9 @@ import {
 } from "firebase/storage";
 import { app } from "../firebase";
 import {
+  deleteFailure,
+  deleteStart,
+  deleteSuccess,
   updateFailure,
   updateStart,
   updateSuccess,
@@ -25,6 +28,7 @@ function Profile() {
   const [fileUploadError, setFileUploadError] = useState(null);
   const [userUpdateSuccess, setUserUpdateSuccess] = useState(false);
   const [formData, setFormData] = useState({});
+  const [confirmPsw, setConfirmPsw] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -76,13 +80,48 @@ function Profile() {
         return;
       }
       dispatch(updateSuccess(data));
+      setConfirmPsw(false);
       setUserUpdateSuccess(true);
     } catch (error) {
       dispatch(updateFailure(error.message));
     }
   };
 
-  console.log(formData);
+  const handleDelete = async () => {
+    dispatch(deleteStart());
+    try {
+      const res = await fetch(`api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success == false) {
+        dispatch(deleteFailure(data.message));
+        return;
+      }
+      dispatch(deleteSuccess());
+    } catch (error) {
+      dispatch(deleteFailure(error.message));
+    }
+  };
+
+  const handleSignOut = async () => {
+    dispatch(deleteStart());
+    try {
+      const res = await fetch(`api/auth/signout`);
+      const data = await res.json();
+      if (data.success == false) {
+        dispatch(deleteFailure(data.message));
+        return;
+      }
+      dispatch(deleteSuccess());
+    } catch (error) {
+      dispatch(deleteFailure(error.message));
+    }
+  };
 
   useEffect(() => {
     if (filePer == 100) {
@@ -183,12 +222,30 @@ function Profile() {
               onChange={handleChange}
             />
           </div>
+
+          {confirmPsw && (
+            <div className=" relative">
+              <label htmlFor="currentPsw">Current Password</label>
+              <input
+                className=" block w-full p-2 rounded-md outline-none"
+                type="password"
+                id="currentPsw"
+                onChange={handleChange}
+              />
+            </div>
+          )}
+
           <div className=" relative">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">New Password</label>
             <button
               type="button"
               onClick={() => {
-                setFormData({ ...formData, password: currentUser.password });
+                setFormData({
+                  ...formData,
+                  password: "1",
+                  currentPsw: formData.currentPsw,
+                });
+                setConfirmPsw(true);
               }}
               className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-[1.65rem] right-1 p-2 rounded-md"
             >
@@ -199,10 +256,11 @@ function Profile() {
               type="password"
               id="password"
               disabled={!Object.keys(formData).includes("password")}
-              defaultValue={1111111111}
+              placeholder="*******"
               onChange={handleChange}
             />
           </div>
+
           {loading ? (
             <button
               disabled={true}
@@ -231,21 +289,57 @@ function Profile() {
           )}
 
           {error && <p className=" text-red-500 text-center">{error}</p>}
-          { userUpdateSuccess && <p className=" text-green-500 text-center">Profile updated successfully!</p>}
+          {userUpdateSuccess && (
+            <p className=" text-green-500 text-center">
+              Profile updated successfully!
+            </p>
+          )}
 
           <div className=" flex gap-2">
-            <button
-              className=" transition-all hover:opacity-70 bg-red-400 w-full p-2 rounded-md  text-primaryBright"
-              type="button"
+            {loading ? (
+              <button
+              disabled={true}
+              className={
+                "transition-all w-full p-2 rounded-md bg-red-900 bg-opacity-75 text-primaryBright"
+              }
             >
-              Sign Out
+              <img
+                className=" w-6 block mx-auto"
+                src="loading-gif.gif"
+                alt=""
+              />
             </button>
-            <button
-              className=" transition-all hover:opacity-70 bg-red-800 w-full p-2 rounded-md  text-primaryBright"
-              type="button"
-            >
-              Delete Account
-            </button>
+            ) : (
+              <button
+                className=" transition-all hover:opacity-70 bg-red-400 w-full p-2 rounded-md  text-primaryBright"
+                type="button"
+                onClick={handleSignOut}
+              >
+                Sign Out
+              </button>
+            )}
+            {loading ? (
+              <button
+                disabled={true}
+                className={
+                  "transition-all w-full p-2 rounded-md bg-red-900 bg-opacity-75 text-primaryBright"
+                }
+              >
+                <img
+                  className=" w-6 block mx-auto"
+                  src="loading-gif.gif"
+                  alt=""
+                />
+              </button>
+            ) : (
+              <button
+                className=" transition-all hover:opacity-70 bg-red-800 w-full p-2 rounded-md  text-primaryBright"
+                type="button"
+                onClick={handleDelete}
+              >
+                Delete Account
+              </button>
+            )}
           </div>
         </form>
       </div>

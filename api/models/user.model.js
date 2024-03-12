@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       default:
-        "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.istockphoto.com%2Fphotos%2Fempty-profile-picture&psig=AOvVaw3iRgYlDiiJxw4IFLoULaP6&ust=1710182269222000&source=images&cd=vfe&opi=89978449&ved=0CBMQjRxqFwoTCOCascer6oQDFQAAAAAdAAAAABAE",
+        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
     },
   },
   { timestamps: true }

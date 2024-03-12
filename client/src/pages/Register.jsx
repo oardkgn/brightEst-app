@@ -31,9 +31,9 @@ function Register() {
       });
       const data = await res.json();
       if (data.success == false) {
-        dispatch(signInFailure());
+        dispatch(signInFailure(data.message));
       } else {
-        dispatch(signInSuccess());
+        dispatch(signInSuccess(data));
         navigate("/home");
       }
     } catch (error) {

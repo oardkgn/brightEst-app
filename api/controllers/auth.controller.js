@@ -9,7 +9,13 @@ export const signUp = async (req, res, next) => {
   const user = new User({ username, email, password: hashedPsw });
   try {
     await user.save();
-    res.status(201).json("User created succesfuly!");
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = user._doc;
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(201)
+        .json(rest);
+
   } catch (error) {
     next(error);
   }
@@ -28,6 +34,15 @@ export const logIn = async (req, res, next) => {
       .cookie("access_token", token, { httpOnly: true })
       .status(200)
       .json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const signOut = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token");
+    res.status(200).json({ message: "Sign out successfully!" });
   } catch (error) {
     next(error);
   }
