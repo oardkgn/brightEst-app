@@ -137,25 +137,7 @@ function Profile() {
     }
   }
 
-  const handleListingUpdate = async(listingID) => {
-    try {
-      const res = await fetch(`api/listing/update/${listingID}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success == false) {
-        console.log(data.message);
-        return;
-      }
-      getAllListings()
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
+  
 
   console.log(listings);
 
@@ -404,8 +386,9 @@ function Profile() {
           <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
             {listings.map((listing, key) => {
               return (
-                <div
-                  className="h-full relative text-primaryDark w-56 bg-gray-300 p-4 rounded-md overflow-hidden"
+                <Link
+                  to={`/listing/${listing._id}`}
+                  className="h-full hover:scale-105 transition-all relative text-primaryDark w-56 bg-gray-300 p-4 rounded-md overflow-hidden"
                   key={key}
                 >
                   <img
@@ -430,7 +413,7 @@ function Profile() {
                     onClick={() => {
                       handleListingDelete(listing._id)
                     }}
-                    className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-2 right-2 p-2 rounded-md"
+                    className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-2 right-2 p-2 rounded-md"
                   >
                     <MdDelete className=" text-red-400" size={20} />
                     
@@ -438,14 +421,14 @@ function Profile() {
                   <Link to={`/update-listing/${listing._id}`}>
                   <button
                     type="button"
-                    className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
+                    className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
                   >
                     <MdEdit className=" text-yellow-400" size={20} />
                     
                   </button>
                   </Link>
 
-                </div>
+                </Link>
               );
             })}
             <Link to={"/create-listing"}>
