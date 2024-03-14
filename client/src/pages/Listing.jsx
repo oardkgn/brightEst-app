@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import SwiperCore from "swiper";
 import { Navigation } from "swiper/modules";
@@ -19,6 +20,7 @@ import {
 } from "react-icons/fa";
 import { TbToolsKitchen2 } from "react-icons/tb";
 import { MdLiving } from "react-icons/md";
+import Contact from "../components/Contact";
 
 function Listing() {
   const params = useParams();
@@ -26,6 +28,8 @@ function Listing() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [contact, setContact] = useState(false);
+  const {currentUser} = useSelector((state) => state.user)
   SwiperCore.use([Navigation]);
   useEffect(() => {
     const fetchListing = async () => {
@@ -113,7 +117,7 @@ function Listing() {
             <p className='text-2xl font-semibold'>
               {listing.name} - ${' '}
               {listing.offer
-                ? listing.discountPrice.toLocaleString('en-US')
+                ? listing.discountedPrice.toLocaleString('en-US')
                 : listing.regularPrice.toLocaleString('en-US')}
               {listing.type === 'rent' && ' / month'}
             </p>
@@ -127,7 +131,7 @@ function Listing() {
               </p>
               {listing.offer && (
                 <p className='bg-green-900 w-full max-w-[200px] text-white text-center p-1 rounded-md'>
-                  ${+listing.regularPrice - +listing.discountPrice} OFF
+                  ${+listing.regularPrice - +listing.discountedPrice} OFF
                 </p>
               )}
             </div>
@@ -170,13 +174,22 @@ function Listing() {
               </li>
               <li className='flex items-center gap-1 whitespace-nowrap '>
                 <FaWifi className='text-lg' />
-                {listing.attributes.furnished ? 'Has Wifi' : 'No Wifi'}
+                {listing.attributes.wifi ? 'Has Wifi' : 'No Wifi'}
               </li>
               <li className='flex items-center gap-1 whitespace-nowrap '>
                 <FaShieldAlt  className='text-lg' />
-                {listing.attributes.furnished ? 'Has Security' : 'No Security'}
+                {listing.attributes.security ? 'Has Security' : 'No Security'}
               </li>
             </ul>
+            {currentUser && listing.userRef !== currentUser._id && !contact && (
+              <button
+                onClick={() => setContact(true)}
+                className='bg-slate-700 text-white rounded-lg uppercase transition-all hover:opacity-95 p-3'
+              >
+                Contact landlord
+              </button>
+            )}
+            {contact && <Contact setContact={setContact} listing={listing} />}
             </div>
         </div>
       )}
