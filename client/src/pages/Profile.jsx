@@ -18,6 +18,7 @@ import {
   updateStart,
   updateSuccess,
 } from "../redux/user/userSlice";
+import { Link } from "react-router-dom";
 
 function Profile() {
   const { currentUser, error, loading } = useSelector((state) => state.user);
@@ -347,9 +348,11 @@ function Profile() {
         <div className=" mb-4">
           <h3 className="text-2xl">My listing estates (0)</h3>
           <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
+            <Link to={"/create-listing"}>
             <button className="hover:scale-105 transition-all h-full w-56 rounded-md text-primaryDark border-2 border-primaryDark flex justify-center items-center">
               <IoAddCircle size={54} />
             </button>
+            </Link>
           </div>
         </div>
         <div className="">
