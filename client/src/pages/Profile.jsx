@@ -137,6 +137,26 @@ function Profile() {
     }
   }
 
+  const handleListingUpdate = async(listingID) => {
+    try {
+      const res = await fetch(`api/listing/update/${listingID}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success == false) {
+        console.log(data.message);
+        return;
+      }
+      getAllListings()
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   console.log(listings);
 
   const handleSignOut = async () => {
@@ -415,16 +435,15 @@ function Profile() {
                     <MdDelete className=" text-red-400" size={20} />
                     
                   </button>
+                  <Link to={`/update-listing/${listing._id}`}>
                   <button
                     type="button"
-                    onClick={() => {
-                      
-                    }}
                     className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
                   >
                     <MdEdit className=" text-yellow-400" size={20} />
                     
                   </button>
+                  </Link>
 
                 </div>
               );
