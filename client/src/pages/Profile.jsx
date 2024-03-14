@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { MdEdit } from "react-icons/md";
 import { useRef, useState, useEffect } from "react";
 import { IoAddCircle } from "react-icons/io5";
+import { MdDelete } from "react-icons/md";
 import {
   getDownloadURL,
   getStorage,
@@ -30,6 +31,7 @@ function Profile() {
   const [userUpdateSuccess, setUserUpdateSuccess] = useState(false);
   const [formData, setFormData] = useState({});
   const [confirmPsw, setConfirmPsw] = useState(false);
+  const [listings, setListings] = useState([]);
 
   const dispatch = useDispatch();
 
@@ -109,6 +111,34 @@ function Profile() {
     }
   };
 
+  const getAllListings = async () => {
+    try {
+      const res = await fetch(`api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      setListings(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleListingDelete = async(listingID) => {
+    try {
+      const res = await fetch(`api/listing/delete/${listingID}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success == false) {
+        console.log(data.message);
+        return;
+      }
+      setListings(listings.filter((listing) => listing._id != listingID))
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  console.log(listings);
+
   const handleSignOut = async () => {
     dispatch(deleteStart());
     try {
@@ -135,6 +165,10 @@ function Profile() {
       handleFileChange(file);
     }
   }, [file]);
+
+  useEffect(() => {
+    getAllListings();
+  }, []);
 
   return (
     <div className=" max-w-[1600px] relative flex gap-8 mx-auto p-2 sm:p-12">
@@ -299,17 +333,17 @@ function Profile() {
           <div className=" flex gap-2">
             {loading ? (
               <button
-              disabled={true}
-              className={
-                "transition-all w-full p-2 rounded-md bg-red-900 bg-opacity-75 text-primaryBright"
-              }
-            >
-              <img
-                className=" w-6 block mx-auto"
-                src="loading-gif.gif"
-                alt=""
-              />
-            </button>
+                disabled={true}
+                className={
+                  "transition-all w-full p-2 rounded-md bg-red-900 bg-opacity-75 text-primaryBright"
+                }
+              >
+                <img
+                  className=" w-6 block mx-auto"
+                  src="loading-gif.gif"
+                  alt=""
+                />
+              </button>
             ) : (
               <button
                 className=" transition-all hover:opacity-70 bg-red-400 w-full p-2 rounded-md  text-primaryBright"
@@ -346,12 +380,59 @@ function Profile() {
       </div>
       <div className=" w-full  bg-opacity-80">
         <div className=" mb-4">
-          <h3 className="text-2xl">My listing estates (0)</h3>
+          <h3 className="text-2xl">My listing estates {listings.length}</h3>
           <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
+            {listings.map((listing, key) => {
+              return (
+                <div
+                  className="h-full relative text-primaryDark w-56 bg-gray-300 p-4 rounded-md overflow-hidden"
+                  key={key}
+                >
+                  <img
+                    className=" h-32 w-full object-cover rounded-md"
+                    src={listing.imageUrls[0]}
+                  />
+                  <div className="mt-2 flex justify-between items-center">
+                    <p className="">{listing.name}</p>
+                    <p className=" text-sm">
+                      {" "}
+                      <span className=" font-semibold">$</span>
+                      {new Intl.NumberFormat("en-US").format(
+                        listing.regularPrice
+                      )}
+                    </p>
+                  </div>
+                  <p className=" text-sm text-gray-500 max-w-32 truncate">
+                    {listing.type}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleListingDelete(listing._id)
+                    }}
+                    className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-2 right-2 p-2 rounded-md"
+                  >
+                    <MdDelete className=" text-red-400" size={20} />
+                    
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      
+                    }}
+                    className=" bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
+                  >
+                    <MdEdit className=" text-yellow-400" size={20} />
+                    
+                  </button>
+
+                </div>
+              );
+            })}
             <Link to={"/create-listing"}>
-            <button className="hover:scale-105 transition-all h-full w-56 rounded-md text-primaryDark border-2 border-primaryDark flex justify-center items-center">
-              <IoAddCircle size={54} />
-            </button>
+              <button className="hover:scale-105 transition-all h-full w-56 rounded-md text-primaryDark border-2 border-primaryDark flex justify-center items-center">
+                <IoAddCircle size={54} />
+              </button>
             </Link>
           </div>
         </div>

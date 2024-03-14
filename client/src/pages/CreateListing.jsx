@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaXmark } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
+import { useSelector} from "react-redux"
 import {
   getStorage,
   ref,
@@ -10,6 +11,7 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { app } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 function CreateListing() {
   const [formData, setFormData] = useState({
@@ -22,7 +24,7 @@ function CreateListing() {
       bedrooms: 1,
       bathrooms: 1,
       kitchens: 1,
-      livigrooms: 1,
+      livingrooms: 1,
     },
     regularPrice: 50,
     discountedPrice: 0,
@@ -39,7 +41,9 @@ function CreateListing() {
   const [imagesUploading, setImagesUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [offer, setOffer] = useState(false);
+  const navigate = useNavigate()
+
+  const { currentUser } = useSelector((state) => state.user)
 
   console.log(formData);
 
@@ -161,11 +165,11 @@ function CreateListing() {
     try {
       if (formData.imageUrls.length < 1)
         return setError("You must upload at least one image");
-      if (+formData.regularPrice < +formData.discountPrice)
+      if (+formData.regularPrice < +formData.discountedPrice)
         return setError("Discount price must be lower than regular price");
       setLoading(true);
       setError(false);
-      const res = await fetch(`/api/listing/update/${params.listingId}`, {
+      const res = await fetch(`/api/listing/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -179,11 +183,14 @@ function CreateListing() {
       setLoading(false);
       if (data.success === false) {
         setError(data.message);
+      }else{
+        navigate(`/profile`);
       }
-      navigate(`/listing/${data._id}`);
+      
     } catch (error) {
       setError(error.message);
       setLoading(false);
+      console.log(error);
     }
   };
 
@@ -201,6 +208,7 @@ function CreateListing() {
       </h1>
 
       <form
+        onSubmit={handleSubmit}
         className="bg-secondaryBright relative flex flex-col lg:flex-row gap-8  p-12 rounded-md"
         action=""
       >
@@ -378,7 +386,7 @@ function CreateListing() {
                   className=" p-2 w-12 rounded-md ml-2"
                   min={0}
                   id="livingrooms"
-                  value={formData.rooms.livigrooms}
+                  value={formData.rooms.livingrooms}
                   type="number"
                   onChange={handleChange}
                 />
@@ -510,9 +518,26 @@ function CreateListing() {
                 ))}
             </div>
           </div>
-          <button className=" transition-all hover:scale-105 bg-primaryDark rounded-md py-3 text-primaryBright">
-            Create listing
-          </button>
+          {loading || imagesUploading ? (
+            <button
+              disabled={true}
+              className={
+                "transition-all w-full p-2 rounded-md bg-primaryDark bg-opacity-75 text-primaryBright"
+              }
+            >
+              <img
+                className=" w-6 block mx-auto"
+                src="loading-gif.gif"
+                alt=""
+              />
+            </button>
+          ) : (
+            <button className=" transition-all hover:scale-105 bg-primaryDark rounded-md py-3 text-primaryBright">
+              Create listing
+            </button>
+          )}
+
+          {error && <p className=" text-red-500">{error}</p>}
         </div>
       </form>
     </div>
