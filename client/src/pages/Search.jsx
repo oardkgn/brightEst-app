@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import ListingItem from "../components/ListingItem";
+
 
 function Search() {
   const [searchData, setSearchData] = useState({
@@ -16,8 +19,11 @@ function Search() {
   const [listings, setListings] = useState([]);
   const [showMore, setShowMore] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
+    const searchQuery = urlParams.toString();
     const searchTermFromUrl = urlParams.get('searchTerm');
     const typeFromUrl = urlParams.get('type');
     const parkingFromUrl = urlParams.get('parking');
@@ -27,6 +33,7 @@ function Search() {
     const offerFromUrl = urlParams.get('offer');
     const sortFromUrl = urlParams.get('sort');
     const orderFromUrl = urlParams.get('order');
+    navigate(`/search?${searchQuery}`);
 
     if (
       searchTermFromUrl ||
@@ -107,9 +114,20 @@ function Search() {
     }
   };
 
-  console.log(searchData);
 
-  const handleSubmit = () => {};
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams();
+    urlParams.set('searchTerm', searchData.searchTerm);
+    urlParams.set('type', searchData.type);
+    urlParams.set('parking', searchData.parking);
+    urlParams.set('furnished', searchData.furnished);
+    urlParams.set('offer', searchData.offer);
+    urlParams.set('sort', searchData.sort);
+    urlParams.set('order', searchData.order);
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
+  };
 
   return (
     <div className="flex max-w-[1600px] mx-auto flex-col md:flex-row">
@@ -250,7 +268,7 @@ function Search() {
           {!loading &&
             listings &&
             listings.map((listing,key) => (
-              <div key={key}>{listing.name}</div>
+              <ListingItem listing={listing} key={key} />
             ))}
 
           {showMore && (

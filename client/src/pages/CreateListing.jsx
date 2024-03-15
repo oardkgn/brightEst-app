@@ -244,7 +244,7 @@ function CreateListing() {
               required
               value={formData.description}
               onChange={handleChange}
-              maxLength={200}
+              maxLength={1200}
               className=" w-full p-2 rounded-md outline-none"
               id="description"
             />

@@ -12,7 +12,7 @@ function Header() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const urlParams = new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('searchTerm', searchTerm);
     const searchQuery = urlParams.toString();
     navigate(`/search?${searchQuery}`);
@@ -24,6 +24,7 @@ function Header() {
     if (searchTermFromUrl) {
       setSearchTerm(searchTermFromUrl);
     }
+    
   }, [location.search]);
 
   return (
