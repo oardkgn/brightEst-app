@@ -4,6 +4,7 @@ import { MdEdit } from "react-icons/md";
 import { useRef, useState, useEffect } from "react";
 import { IoAddCircle } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
+import { RxCross2 } from "react-icons/rx";
 import {
   getDownloadURL,
   getStorage,
@@ -28,10 +29,17 @@ function Profile() {
   const [fileLoading, setFileLoading] = useState(false);
   const [filePer, setFilePer] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(null);
+  const [likedList, setLikedList] = useState([]);
   const [userUpdateSuccess, setUserUpdateSuccess] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    username: currentUser.username,
+    avatar: currentUser.avatar,
+    email: currentUser.email,
+  });
   const [confirmPsw, setConfirmPsw] = useState(false);
   const [listings, setListings] = useState([]);
+
+  console.log(formData);
 
   const dispatch = useDispatch();
 
@@ -116,12 +124,23 @@ function Profile() {
       const res = await fetch(`api/user/listings/${currentUser._id}`);
       const data = await res.json();
       setListings(data);
+      getAllLikedListings();
     } catch (error) {
       console.log(error);
     }
   };
 
-  const handleListingDelete = async(listingID) => {
+  const getAllLikedListings = async () => {
+    try {
+      const res = await fetch(`api/user/get/likes/${currentUser._id}`);
+      const data = await res.json();
+      setLikedList(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleListingDelete = async (listingID) => {
     try {
       const res = await fetch(`api/listing/delete/${listingID}`, {
         method: "DELETE",
@@ -131,15 +150,28 @@ function Profile() {
         console.log(data.message);
         return;
       }
-      setListings(listings.filter((listing) => listing._id != listingID))
+      setListings(listings.filter((listing) => listing._id != listingID));
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
+  const handleLikeDelete = async (listingID) => {
+    try {
+      const res = await fetch(`api/user/likes/delete/${listingID}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success == false) {
+        console.log(data.message);
+        return;
+      }
+      setLikedList(likedList.filter((listing) => listing._id != listingID));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
-  
-
-  console.log(listings);
+  console.log(likedList);
 
   const handleSignOut = async () => {
     dispatch(deleteStart());
@@ -386,49 +418,49 @@ function Profile() {
           <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
             {listings.map((listing, key) => {
               return (
-                <Link
-                  to={`/listing/${listing._id}`}
-                  className="h-full hover:scale-105 transition-all relative text-primaryDark w-56 bg-gray-300 p-4 rounded-md overflow-hidden"
-                  key={key}
-                >
-                  <img
-                    className=" h-32 w-full object-cover rounded-md"
-                    src={listing.imageUrls[0]}
-                  />
-                  <div className="mt-2 flex justify-between items-center">
-                    <p className="">{listing.name}</p>
-                    <p className=" text-sm">
-                      {" "}
-                      <span className=" font-semibold">$</span>
-                      {new Intl.NumberFormat("en-US").format(
-                        listing.regularPrice
-                      )}
+                <div key={key} className=" hover:scale-105 transition-all relative p-4  w-56 rounded-md bg-gray-300">
+                  <Link
+                    to={`/listing/${listing._id}`}
+                    className="h-full  text-primaryDark   overflow-hidden"
+                    
+                  >
+                    <img
+                      className=" h-32 w-full object-cover rounded-md"
+                      src={listing.imageUrls[0]}
+                    />
+                    <div className="mt-2 flex justify-between items-center">
+                      <p className="">{listing.name}</p>
+                      <p className=" text-sm">
+                        {" "}
+                        <span className=" font-semibold">$</span>
+                        {new Intl.NumberFormat("en-US").format(
+                          listing.regularPrice
+                        )}
+                      </p>
+                    </div>
+                    <p className=" text-sm text-gray-500 max-w-32 truncate">
+                      {listing.type}
                     </p>
-                  </div>
-                  <p className=" text-sm text-gray-500 max-w-32 truncate">
-                    {listing.type}
-                  </p>
+
+                    <Link to={`/update-listing/${listing._id}`}>
+                      <button
+                        type="button"
+                        className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
+                      >
+                        <MdEdit className=" text-yellow-400" size={20} />
+                      </button>
+                    </Link>
+                  </Link>
                   <button
                     type="button"
                     onClick={() => {
-                      handleListingDelete(listing._id)
+                      handleListingDelete(listing._id);
                     }}
                     className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-2 right-2 p-2 rounded-md"
                   >
                     <MdDelete className=" text-red-400" size={20} />
-                    
                   </button>
-                  <Link to={`/update-listing/${listing._id}`}>
-                  <button
-                    type="button"
-                    className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
-                  >
-                    <MdEdit className=" text-yellow-400" size={20} />
-                    
-                  </button>
-                  </Link>
-
-                </Link>
+                </div>
               );
             })}
             <Link to={"/create-listing"}>
@@ -439,11 +471,48 @@ function Profile() {
           </div>
         </div>
         <div className="">
-          <h3 className="text-2xl">Watch list (0)</h3>
+          <h3 className="text-2xl">Watch list {likedList.length}</h3>
           <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
-            <button className="hover:scale-105 transition-all h-full w-56 rounded-md text-primaryDark border-2 border-primaryDark flex justify-center items-center">
-              <IoAddCircle size={54} />
-            </button>
+            {likedList.map((listing, key) => {
+              return (
+                <div
+                  key={key}
+                  className=" hover:scale-105 transition-all w-56 bg-gray-300 relative rounded-md  p-4 "
+                >
+                  <Link
+                    to={`/listing/${listing._id}`}
+                    className="h-full  relative text-primaryDark w-56  overflow-hidden"
+                  >
+                    <img
+                      className=" h-32 w-full object-cover rounded-md"
+                      src={listing.imageUrls[0]}
+                    />
+                    <div className="mt-2 flex justify-between items-center">
+                      <p className="">{listing.name}</p>
+                      <p className=" text-sm">
+                        {" "}
+                        <span className=" font-semibold">$</span>
+                        {new Intl.NumberFormat("en-US").format(
+                          listing.regularPrice
+                        )}
+                      </p>
+                    </div>
+                    <p className=" text-sm text-gray-500 max-w-32 truncate">
+                      {listing.type}
+                    </p>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleLikeDelete(listing._id);
+                    }}
+                    className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 top-2 right-2 p-2 rounded-md"
+                  >
+                    <RxCross2 className=" text-red-400" size={20} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
