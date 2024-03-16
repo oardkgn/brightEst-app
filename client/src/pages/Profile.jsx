@@ -9,6 +9,7 @@ import {
   getDownloadURL,
   getStorage,
   ref,
+  deleteObject,
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
@@ -39,7 +40,6 @@ function Profile() {
   const [confirmPsw, setConfirmPsw] = useState(false);
   const [listings, setListings] = useState([]);
 
-  console.log(formData);
 
   const dispatch = useDispatch();
 
@@ -47,6 +47,20 @@ function Profile() {
     setFileLoading(true);
     setFileUploadError(false);
     const storage = getStorage(app);
+
+    if (formData.avatar && !formData.avatar.includes("googleusercontent")) {
+      const desertRef = ref(storage, formData.avatar);
+        // Delete the file
+    deleteObject(desertRef)
+      .then(() => {
+        console.log("Pre image deleted!");
+      })
+      .catch((error) => {
+        console.log(error);
+        return
+      });
+    }
+
     const fileName = new Date().getTime() + file.name;
     const storageRef = ref(storage, `avatars/${fileName}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
@@ -171,8 +185,6 @@ function Profile() {
     }
   };
 
-  console.log(likedList);
-
   const handleSignOut = async () => {
     dispatch(deleteStart());
     try {
@@ -205,7 +217,7 @@ function Profile() {
   }, []);
 
   return (
-    <div className=" max-w-[1600px] relative flex gap-8 mx-auto p-2 sm:p-12">
+    <div className=" max-w-[1600px] overflow-hidden relative flex flex-col md:flex-row gap-8 mx-auto p-6 sm:p-12">
       <img
         className=" absolute w-96 -left-10 -bottom-10 -rotate-45 -z-10"
         src="avatar1.png"
@@ -217,11 +229,11 @@ function Profile() {
         alt=""
       />
       <img
-        className=" absolute w-[600px] -right-10 top-44 -z-10"
+        className=" absolute w-[600px] hidden md:block md:-right-10 md:top-44 -z-10"
         src="estate1.png"
         alt=""
       />
-      <div className=" bg-secondaryBright rounded-md p-6 bg-opacity-85 sm:w-[460px] w-full">
+      <div className=" bg-secondaryBright mx-auto rounded-md p-1 lg:p-6 bg-opacity-85 sm:w-[460px] w-full">
         <div className=" relative w-fit mx-auto">
           <img
             className=" rounded-md w-28 h-28 object-cover shadow-md"
@@ -250,7 +262,7 @@ function Profile() {
             )}
           </button>
         </div>
-        <form className=" flex flex-col gap-6 p-8" action="">
+        <form className=" flex flex-col gap-6 p-1 lg:p-8" action="">
           <div className=" relative">
             <label htmlFor="username">Username</label>
             <button
@@ -415,21 +427,23 @@ function Profile() {
       <div className=" w-full  bg-opacity-80">
         <div className=" mb-4">
           <h3 className="text-2xl">My listing estates {listings.length}</h3>
-          <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
+          <div className=" bg-secondaryBright bg-opacity-80 w-full min-h-64 p-4 grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 rounded-md">
             {listings.map((listing, key) => {
               return (
-                <div key={key} className=" hover:scale-105 transition-all relative p-4  w-56 rounded-md bg-gray-300">
+                <div
+                  key={key}
+                  className=" hover:scale-105 transition-all relative p-4  min-w-42 rounded-md bg-gray-300"
+                >
                   <Link
                     to={`/listing/${listing._id}`}
                     className="h-full  text-primaryDark   overflow-hidden"
-                    
                   >
                     <img
                       className=" h-32 w-full object-cover rounded-md"
                       src={listing.imageUrls[0]}
                     />
-                    <div className="mt-2 flex justify-between items-center">
-                      <p className="">{listing.name}</p>
+                    <div className="mt-2 flex gap-1 justify-between items-center">
+                      <p className="line-clamp-2 text-sm">{listing.name}</p>
                       <p className=" text-sm">
                         {" "}
                         <span className=" font-semibold">$</span>
@@ -442,7 +456,9 @@ function Profile() {
                       {listing.type}
                     </p>
 
-                    <Link to={`/update-listing/${listing._id}`}>
+                    
+                  </Link>
+                  <Link to={`/update-listing/${listing._id}`}>
                       <button
                         type="button"
                         className=" z-10 bg-primaryBright absolute shadow-lg transition-all hover:scale-110 bottom-2 right-2 p-2 rounded-md"
@@ -450,7 +466,6 @@ function Profile() {
                         <MdEdit className=" text-yellow-400" size={20} />
                       </button>
                     </Link>
-                  </Link>
                   <button
                     type="button"
                     onClick={() => {
@@ -464,7 +479,7 @@ function Profile() {
               );
             })}
             <Link to={"/create-listing"}>
-              <button className="hover:scale-105 transition-all h-full w-56 rounded-md text-primaryDark border-2 border-primaryDark flex justify-center items-center">
+              <button className="hover:scale-105 transition-all h-full w-full rounded-md text-primaryDark border-2 border-primaryDark flex justify-center items-center">
                 <IoAddCircle size={54} />
               </button>
             </Link>
@@ -472,12 +487,12 @@ function Profile() {
         </div>
         <div className="">
           <h3 className="text-2xl">Watch list {likedList.length}</h3>
-          <div className=" bg-secondaryBright bg-opacity-80 w-full h-64 p-4 flex gap-4 rounded-md">
+          <div className=" bg-secondaryBright bg-opacity-80 w-full min-h-64 p-4 grid  grid-cols-1 xs:grid-cols-2  lg:grid-cols-3 xl:grid-cols-4 gap-4 rounded-md">
             {likedList.map((listing, key) => {
               return (
                 <div
                   key={key}
-                  className=" hover:scale-105 transition-all w-56 bg-gray-300 relative rounded-md  p-4 "
+                  className=" hover:scale-105 transition-all min-w-42 bg-gray-300 relative rounded-md  p-4 "
                 >
                   <Link
                     to={`/listing/${listing._id}`}
@@ -487,8 +502,8 @@ function Profile() {
                       className=" h-32 w-full object-cover rounded-md"
                       src={listing.imageUrls[0]}
                     />
-                    <div className="mt-2 flex justify-between items-center">
-                      <p className="">{listing.name}</p>
+                    <div className="mt-2 flex gap-1 justify-between items-center">
+                      <p className=" line-clamp-2 text-sm">{listing.name}</p>
                       <p className=" text-sm">
                         {" "}
                         <span className=" font-semibold">$</span>

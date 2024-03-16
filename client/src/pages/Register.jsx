@@ -17,9 +17,14 @@ function Register() {
     password: "",
   });
   const { loading, error } = useSelector((state) => state.user);
+  const [pswConf, setPswConf] = useState("")
   const dispatch = useDispatch();
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password != pswConf) {
+      dispatch(signInFailure("Wrong password confirmation!"));
+      return
+    }
     dispatch(signInStart());
     try {
       const res = await fetch("api/auth/signUp", {
@@ -87,6 +92,7 @@ function Register() {
             type="password"
             name=""
             id="passwordC"
+            onChange={(e) => setPswConf(e.target.value)}
           />
           <label className=" font-semibold" htmlFor="email">
             Email

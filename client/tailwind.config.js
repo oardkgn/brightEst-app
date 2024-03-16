@@ -5,6 +5,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+
     extend: {
       colors:{
         'primaryDark':'#222831',
@@ -12,6 +13,9 @@ export default {
         'primaryColor':'#76ABAE',
         'secondaryBright':'#e4e4e4',
         'primaryBright':'#EEEEEE'
+      },
+      screens: {
+        'xs': '530px',
       }
     },
   },

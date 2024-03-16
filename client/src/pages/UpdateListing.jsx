@@ -9,6 +9,7 @@ import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
+  deleteObject
 } from "firebase/storage";
 import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -211,6 +212,20 @@ function UpdateListing() {
   };
 
   const handleRemoveImage = (index) => {
+
+    const storage = getStorage(app);
+
+    const desertRef = ref(storage, formData.imageUrls[index]);
+        // Delete the file
+    deleteObject(desertRef)
+      .then(() => {
+        console.log("Pre image deleted!");
+      })
+      .catch((error) => {
+        console.log(error);
+        return
+      });
+
     setFormData({
       ...formData,
       imageUrls: formData.imageUrls.filter((_, i) => i !== index),
